@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { Container, VStack, HStack, Input, Button, Checkbox, Text, IconButton } from "@chakra-ui/react";
-import { FaTrash } from "react-icons/fa";
+import { FaTrash, FaEdit, FaSave } from "react-icons/fa";
 
 const Index = () => {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editingText, setEditingText] = useState("");
 
   const addTask = () => {
     if (newTask.trim() !== "") {
@@ -19,10 +21,26 @@ const Index = () => {
   };
 
   const toggleTaskCompletion = (index) => {
+    if (index === editingIndex) {
+      setEditingIndex(null);
+    }
     const newTasks = tasks.map((task, i) => 
       i === index ? { ...task, completed: !task.completed } : task
     );
     setTasks(newTasks);
+  };
+
+  const startEditing = (index) => {
+    setEditingIndex(index);
+    setEditingText(tasks[index].text);
+  };
+
+  const saveTask = (index) => {
+    const newTasks = tasks.map((task, i) => 
+      i === index ? { ...task, text: editingText } : task
+    );
+    setTasks(newTasks);
+    setEditingIndex(null);
   };
 
   return (
@@ -43,13 +61,35 @@ const Index = () => {
                 isChecked={task.completed} 
                 onChange={() => toggleTaskCompletion(index)}
               >
-                <Text as={task.completed ? "s" : ""}>{task.text}</Text>
+                {editingIndex === index ? (
+                  <Input 
+                    value={editingText} 
+                    onChange={(e) => setEditingText(e.target.value)} 
+                  />
+                ) : (
+                  <Text as={task.completed ? "s" : ""}>{task.text}</Text>
+                )}
               </Checkbox>
-              <IconButton 
-                aria-label="Delete task" 
-                icon={<FaTrash />} 
-                onClick={() => deleteTask(index)} 
-              />
+              <HStack>
+                {editingIndex === index ? (
+                  <IconButton 
+                    aria-label="Save task" 
+                    icon={<FaSave />} 
+                    onClick={() => saveTask(index)} 
+                  />
+                ) : (
+                  <IconButton 
+                    aria-label="Edit task" 
+                    icon={<FaEdit />} 
+                    onClick={() => startEditing(index)} 
+                  />
+                )}
+                <IconButton 
+                  aria-label="Delete task" 
+                  icon={<FaTrash />} 
+                  onClick={() => deleteTask(index)} 
+                />
+              </HStack>
             </HStack>
           ))}
         </VStack>
